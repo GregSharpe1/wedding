@@ -1,0 +1,6 @@
+project_name          = "thesharpes-wedding-staging"
+production_branch     = "main"
+domain                = "staging.thesharpes.wedding"
+d1_database_name      = "thesharpes-wedding-staging-rsvps"
+rsvp_invite_code      = "replace-me"
+turnstile_widget_name = "thesharpes-wedding-staging-rsvp"

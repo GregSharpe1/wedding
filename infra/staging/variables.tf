@@ -8,16 +8,10 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
-variable "staging_project_name" {
+variable "project_name" {
   description = "Cloudflare Pages project name for staging."
   type        = string
   default     = "thesharpes-wedding-staging"
-}
-
-variable "production_project_name" {
-  description = "Cloudflare Pages project name for production."
-  type        = string
-  default     = "thesharpes-wedding"
 }
 
 variable "production_branch" {
@@ -26,26 +20,32 @@ variable "production_branch" {
   default     = "main"
 }
 
-variable "staging_domain" {
+variable "domain" {
   description = "Custom staging hostname served by the Pages project."
   type        = string
   default     = "staging.thesharpes.wedding"
 }
 
-variable "production_domain" {
-  description = "Production apex hostname served by the production Pages project."
+variable "d1_database_name" {
+  description = "D1 database name used by the staging Pages project for RSVP data."
   type        = string
-  default     = "thesharpes.wedding"
+  default     = "thesharpes-wedding-staging-rsvps"
 }
 
-variable "production_www_domain" {
-  description = "Production www hostname that redirects to the apex domain."
+variable "rsvp_invite_code" {
+  description = "Shared RSVP invite code used to open the gated RSVP flow."
   type        = string
-  default     = "www.thesharpes.wedding"
+  sensitive   = true
 }
 
-variable "enable_production" {
-  description = "Whether to create the production Pages project and domains."
-  type        = bool
-  default     = true
+variable "turnstile_widget_name" {
+  description = "Cloudflare Turnstile widget name used for the staging RSVP flow."
+  type        = string
+  default     = "thesharpes-wedding-staging-rsvp"
+}
+
+variable "compatibility_date" {
+  description = "Compatibility date for Pages Functions bindings."
+  type        = string
+  default     = "2026-06-07"
 }

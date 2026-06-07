@@ -28,23 +28,27 @@ Build output directory: dist
 
 ## D1 Setup
 
-Create a D1 database, for example:
+Create the D1 databases through the separate Terraform roots in `infra/`:
 
 ```bash
-npx wrangler d1 create wedding-rsvps
+make -C infra apply-staging
+make -C infra apply-production
 ```
 
-Apply the migration once migrations exist:
+Apply the migrations after Terraform has created the databases:
 
 ```bash
-npx wrangler d1 migrations apply wedding-rsvps
+make -C infra migrate-staging
+make -C infra migrate-production
 ```
 
-For production, apply with the current Wrangler production flag at implementation time.
+If production infrastructure is disabled, skip the production migration target.
 
 ## Pages Bindings
 
-Bind the D1 database to the Pages project with binding name:
+Terraform configures the Turnstile widget, the Pages bindings, and the environment variables for each Pages project.
+
+Expected D1 binding name:
 
 ```text
 DB
@@ -64,11 +68,9 @@ PUBLIC_TURNSTILE_SITE_KEY
 
 ## Turnstile Setup
 
-1. Create a Turnstile widget in Cloudflare.
-2. Add the production domain.
-3. Add the preview Pages domain if needed.
-4. Store the site key in Pages environment variables.
-5. Store the secret key in Pages environment variables.
+1. Terraform creates the Turnstile widget.
+2. Each environment root registers its own custom domains on its widget.
+3. If you want extra preview hostnames later, add them to the matching Terraform root.
 
 ## Production Domain
 
@@ -90,4 +92,4 @@ Before sharing the site:
 - Submit an RSVP declining.
 - Verify D1 rows are created.
 - Test validation errors.
-- Test Turnstile protection in production.
+- Test Turnstile protection in staging and production.

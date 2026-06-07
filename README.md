@@ -20,16 +20,20 @@ npm run build
 Cloudflare infrastructure lives in `infra/`.
 
 ```bash
-cd infra
-make init
-make import-project
-make plan
-make apply
-make deploy
-make deploy-production
+make -C infra init-staging
+make -C infra plan-staging
+make -C infra apply-staging
+make -C infra deploy-staging
+
+make -C infra init-production
+make -C infra plan-production
+make -C infra apply-production
+make -C infra deploy-production
+
+make -C infra update-guests-staging
 ```
 
-See `infra/README.md` for required environment variables and the staging bootstrap flow.
+See `infra/README.md` for required environment variables and the per-environment bootstrap flow.
 
 Cloudflare Pages should use:
 
@@ -52,4 +56,4 @@ Until the file exists, the music player is not rendered, so there is no broken a
 
 ## RSVP
 
-The RSVP form is currently shown as "opening soon" and disabled. The Cloudflare D1-backed RSVP flow will be added in a later step.
+The RSVP flow lives on `/rsvp` and depends on the Cloudflare resources managed under `infra/staging` and `infra/production`.

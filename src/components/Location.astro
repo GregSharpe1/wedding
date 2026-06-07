@@ -6,8 +6,9 @@ const hotels = [
     distance: '~20 min walk · 5 min taxi',
     description: 'Reliable, no-frills rooms in the city centre — the easiest cheap option close to the venue.',
     href: 'https://www.travelodge.co.uk/hotels/504/Cardiff-Central-Queen-Street-hotel',
+    imageSrc: 'https://media.travelodge.co.uk/image/upload/c_fill,g_south,h_400,w_626/v1664787464/Rebase/Zebrano-Refit-SFN.webp',
+    imageAlt: 'Travelodge Cardiff Central room interior',
     mapHref: 'https://www.google.com/maps/search/?api=1&query=Travelodge%20Cardiff%20Central%20Queen%20Street',
-    mapEmbed: 'https://www.google.com/maps?q=Travelodge%20Cardiff%20Central%20Queen%20Street&output=embed',
   },
   {
     tier: 'Mid-range',
@@ -15,17 +16,19 @@ const hotels = [
     distance: '~20 min walk · 5 min taxi',
     description: 'Boutique city-centre hotel with a rooftop terrace and Welsh-inspired design. A lovely middle-ground stay.',
     href: 'https://www.ihg.com/hotelindigo/hotels/gb/en/cardiff/cdfin/hoteldetail',
+    imageSrc: 'https://digital.ihg.com/is/image/ihg/hotel-indigo-cardiff-5386035535-4x3',
+    imageAlt: 'Hotel Indigo Cardiff exterior',
     mapHref: 'https://www.google.com/maps/search/?api=1&query=Hotel%20Indigo%20Cardiff',
-    mapEmbed: 'https://www.google.com/maps?q=Hotel%20Indigo%20Cardiff&output=embed',
   },
   {
     tier: 'Luxury',
     name: "voco St. David's Cardiff",
     distance: '~15 min taxi · Cardiff Bay',
     description: "Five-star waterfront hotel on Cardiff Bay with a spa and harbour views — the treat-yourself option.",
-    href: 'https://www.ihg.com/voco/hotels/gb/en/cardiff/cwlbr/hoteldetail',
+    href: 'https://www.ihg.com/voco/hotels/gb/en/cardiff/cwlcd/hoteldetail',
+    imageSrc: 'https://digital.ihg.com/is/image/ihg/voco-cardiff-7980620188-2x1',
+    imageAlt: "voco St. David's Cardiff exterior",
     mapHref: 'https://www.google.com/maps/search/?api=1&query=voco%20St.%20David%27s%20Cardiff',
-    mapEmbed: 'https://www.google.com/maps?q=voco%20St.%20David%27s%20Cardiff&output=embed',
   },
 ];
 ---
@@ -90,22 +93,8 @@ const hotels = [
         <h4>{hotel.name}</h4>
         <p class="muted">{hotel.distance}</p>
         <p>{hotel.description}</p>
-        <a
-          class="hotel-map"
-          href={hotel.mapHref}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`Open ${hotel.name} in Google Maps`}
-        >
-          <iframe
-            title={`Map to ${hotel.name}`}
-            src={hotel.mapEmbed}
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
-          <div class="hotel-map-overlay">
-            <span>View Map</span>
-          </div>
+        <a class="hotel-photo" href={hotel.href} target="_blank" rel="noreferrer" aria-label={`Open ${hotel.name} website`}>
+          <img src={hotel.imageSrc} alt={hotel.imageAlt} loading="lazy" />
         </a>
         <div class="hotel-links">
           <a href={hotel.href} target="_blank" rel="noreferrer">View hotel</a>

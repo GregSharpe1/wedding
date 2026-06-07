@@ -1,0 +1,78 @@
+[
+  {
+    "label": "Greg and Lucy",
+    "people": [
+      { "firstName": "Greg", "surname": "Sharpe" },
+      { "firstName": "Lucy", "surname": "Sharpe" }
+    ]
+  },
+  {
+    "label": "Sam and Priya",
+    "people": [
+      { "firstName": "Sam", "surname": "Patel" },
+      { "firstName": "Priya", "surname": "Patel" }
+    ]
+  },
+  {
+    "label": "Alex Jones",
+    "people": [
+      { "firstName": "Alex", "surname": "Jones" }
+    ]
+  },
+  {
+    "label": "Tom and Hannah",
+    "people": [
+      { "firstName": "Tom", "surname": "Evans" },
+      { "firstName": "Hannah", "surname": "Evans" }
+    ]
+  },
+  {
+    "label": "Megan and Rhys",
+    "people": [
+      { "firstName": "Megan", "surname": "Morgan" },
+      { "firstName": "Rhys", "surname": "Morgan" }
+    ]
+  },
+  {
+    "label": "Charlotte and Ben",
+    "people": [
+      { "firstName": "Charlotte", "surname": "Davies" },
+      { "firstName": "Ben", "surname": "Davies" }
+    ]
+  },
+  {
+    "label": "Edward and Thomas",
+    "people": [
+      { "firstName": "Edward", "surname": "Davies" },
+      { "firstName": "Thomas", "surname": "Davies" }
+    ]
+  },
+  {
+    "label": "Emma and Jack",
+    "people": [
+      { "firstName": "Emma", "surname": "Taylor" },
+      { "firstName": "Jack", "surname": "Taylor" }
+    ]
+  },
+  {
+    "label": "Daniel and Sophie",
+    "people": [
+      { "firstName": "Daniel", "surname": "Lewis" },
+      { "firstName": "Sophie", "surname": "Lewis" }
+    ]
+  },
+  {
+    "label": "Olivia and Ryan",
+    "people": [
+      { "firstName": "Olivia", "surname": "Williams" },
+      { "firstName": "Ryan", "surname": "Williams" }
+    ]
+  },
+  {
+    "label": "James and Beth",
+    "people": [
+      { "firstName": "James", "surname": "Thomas" },
+      { "firstName": "Beth", "surname": "Thomas" }
+    ]
+  }
+]

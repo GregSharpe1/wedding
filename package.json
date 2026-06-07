@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "pages:dev": "npm run build && npx wrangler pages dev dist",
+    "import:invites": "node scripts/import-invites.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

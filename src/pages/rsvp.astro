@@ -1,0 +1,453 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+---
+
+<BaseLayout title="RSVP | The Sharpes" description="RSVP for Greg and Lucy's wedding.">
+  <Header onHome={false} />
+  <main>
+    <section class="section rsvp-section rsvp-page">
+      <div class="section-heading centered">
+        <p class="eyebrow">Kindly Reply</p>
+        <h2>RSVP</h2>
+        <p>Use the invite code from your invitation to get started.</p>
+      </div>
+
+      <div class="rsvp-shell">
+        <p class="rsvp-feedback" id="rsvp-feedback" role="status" aria-live="polite" hidden></p>
+
+        <div class="rsvp-panel" id="rsvp-invite-summary" hidden>
+          <p class="label">Invitation Found</p>
+          <h3 id="rsvp-invite-title"></h3>
+          <p id="rsvp-invite-people"></p>
+        </div>
+
+        <form class="rsvp-panel rsvp-form" id="invite-code-form">
+          <label>
+            <span class="rsvp-field-heading">Invite code</span>
+            <input autocomplete="one-time-code" id="invite-code" name="inviteCode" type="text" />
+            <span class="rsvp-field-helper">Enter the shared code from your invitation.</span>
+          </label>
+          <button type="submit">Continue</button>
+        </form>
+
+        <form class="rsvp-panel rsvp-form" id="surname-form" hidden>
+          <label>
+            <span class="rsvp-field-heading">Surname</span>
+            <input autocomplete="family-name" id="surname" name="surname" type="text" />
+            <span class="rsvp-field-helper">Use the surname printed on your invitation.</span>
+          </label>
+          <div class="rsvp-turnstile-wrap">
+            {
+              turnstileSiteKey ? (
+                <div class="rsvp-turnstile" id="lookup-turnstile-widget"></div>
+              ) : (
+                <p class="rsvp-helper">Turnstile is not configured in this environment, so lookup verification is disabled locally.</p>
+              )
+            }
+          </div>
+          <button type="submit">Find Invitation</button>
+        </form>
+
+        <form class="rsvp-panel rsvp-form" id="first-name-form" hidden>
+          <label>
+            <span class="rsvp-field-heading">First name</span>
+            <input autocomplete="given-name" id="first-name" name="firstName" type="text" />
+            <span class="rsvp-field-helper">We found more than one invitation with that surname. Enter one first name from your invitation.</span>
+          </label>
+          <div class="rsvp-turnstile-wrap">
+            {
+              turnstileSiteKey ? (
+                <div class="rsvp-turnstile" id="first-name-turnstile-widget"></div>
+              ) : (
+                <p class="rsvp-helper">Turnstile is not configured in this environment, so lookup verification is disabled locally.</p>
+              )
+            }
+          </div>
+          <button type="submit">Continue</button>
+        </form>
+
+        <form class="rsvp-panel rsvp-form-panel" id="response-form" hidden>
+          <fieldset>
+            <legend>Attendance</legend>
+            <div class="radio-row">
+              <label>
+                <input checked name="attendanceStatus" type="radio" value="accepts" />
+                Joyfully accepts
+              </label>
+              <label>
+                <input name="attendanceStatus" type="radio" value="declines" />
+                Regretfully declines
+              </label>
+            </div>
+            <p class="rsvp-helper">If you need to bring someone else, please contact Greg or Lucy directly.</p>
+          </fieldset>
+
+          <input name="guestCount" type="hidden" value="1" />
+          <input name="guestNames" type="hidden" value="" />
+          <input name="dietaryRequirements" type="hidden" value="" />
+
+          <label>
+            <span class="rsvp-field-heading">Song request</span>
+            <input name="songRequest" type="text" />
+          </label>
+
+          <label class="rsvp-note-field">
+            <span class="rsvp-field-heading">Note for Greg and Lucy</span>
+            <textarea name="message" rows="2"></textarea>
+          </label>
+
+          <div class="rsvp-turnstile-wrap">
+            {
+              turnstileSiteKey ? (
+                <div class="rsvp-turnstile" id="turnstile-widget"></div>
+              ) : (
+                <p class="rsvp-helper">Turnstile is not configured in this environment, so submission verification is disabled locally.</p>
+              )
+            }
+          </div>
+
+          <button type="submit">Send RSVP</button>
+        </form>
+
+        <div class="rsvp-panel rsvp-message-panel" id="rsvp-success" hidden>
+          <p class="label">Thank You</p>
+          <h3>RSVP Received</h3>
+          <p class="rsvp-panel-copy">Thanks for replying. If you need to make any changes, please contact Greg or Lucy directly.</p>
+        </div>
+
+        <div class="rsvp-panel rsvp-message-panel" id="rsvp-locked" hidden>
+          <p class="label">Need Help?</p>
+          <h3>Contact Greg Or Lucy</h3>
+          <p class="rsvp-panel-copy" id="rsvp-locked-message"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+
+  {turnstileSiteKey && <script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>}
+
+  <script is:inline define:vars={{ turnstileSiteKey }}>
+    const neutralError = "We couldn't open an RSVP from those details. If you've already replied or need help, please contact Greg or Lucy.";
+    const feedbackElement = document.getElementById('rsvp-feedback');
+    const inviteSummaryElement = document.getElementById('rsvp-invite-summary');
+    const inviteTitleElement = document.getElementById('rsvp-invite-title');
+    const invitePeopleElement = document.getElementById('rsvp-invite-people');
+    const lockedElement = document.getElementById('rsvp-locked');
+    const lockedMessageElement = document.getElementById('rsvp-locked-message');
+    const successElement = document.getElementById('rsvp-success');
+    const gateForm = document.getElementById('invite-code-form');
+    const surnameForm = document.getElementById('surname-form');
+    const firstNameForm = document.getElementById('first-name-form');
+    const responseForm = document.getElementById('response-form');
+    const inviteCodeInput = document.getElementById('invite-code');
+    const surnameInput = document.getElementById('surname');
+    const firstNameInput = document.getElementById('first-name');
+    const formPanels = [gateForm, surnameForm, firstNameForm, responseForm, lockedElement, successElement];
+
+    let inviteCode = '';
+    let surname = '';
+    let token = new URL(window.location.href).searchParams.get('token')?.trim() ?? '';
+    let submitTurnstileWidgetId = null;
+    let lookupTurnstileWidgetId = null;
+    let firstNameTurnstileWidgetId = null;
+
+    function setFeedback(message, tone = 'default') {
+      if (!message) {
+        feedbackElement.hidden = true;
+        feedbackElement.textContent = '';
+        feedbackElement.dataset.tone = '';
+        return;
+      }
+
+      feedbackElement.hidden = false;
+      feedbackElement.textContent = message;
+      feedbackElement.dataset.tone = tone;
+    }
+
+    function hidePanels() {
+      for (const panel of formPanels) {
+        if (panel) {
+          panel.hidden = true;
+        }
+      }
+
+      inviteSummaryElement.hidden = true;
+    }
+
+    function showPanel(panel) {
+      hidePanels();
+      panel.hidden = false;
+
+      if (turnstileSiteKey) {
+        maybeRenderTurnstile();
+      }
+    }
+
+    function setPending(form, pending) {
+      if (!form) {
+        return;
+      }
+
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = pending;
+      }
+    }
+
+    function populateInvite(invite) {
+      inviteTitleElement.textContent = invite.title;
+      invitePeopleElement.textContent = invite.people.map((person) => `${person.firstName} ${person.surname}`).join(' and ');
+      inviteSummaryElement.hidden = false;
+    }
+
+    function showLocked(message = neutralError) {
+      showPanel(lockedElement);
+      lockedMessageElement.textContent = message;
+      setFeedback('');
+    }
+
+    function maybeRenderTurnstile() {
+      if (!turnstileSiteKey) {
+        return;
+      }
+
+      if (!window.turnstile) {
+        window.setTimeout(maybeRenderTurnstile, 200);
+        return;
+      }
+
+      if (lookupTurnstileWidgetId === null) {
+        lookupTurnstileWidgetId = window.turnstile.render('#lookup-turnstile-widget', {
+          sitekey: turnstileSiteKey,
+          theme: 'dark',
+          action: 'lookup',
+        });
+      }
+
+      if (firstNameTurnstileWidgetId === null) {
+        firstNameTurnstileWidgetId = window.turnstile.render('#first-name-turnstile-widget', {
+          sitekey: turnstileSiteKey,
+          theme: 'dark',
+          action: 'lookup',
+        });
+      }
+
+      if (submitTurnstileWidgetId === null) {
+        submitTurnstileWidgetId = window.turnstile.render('#turnstile-widget', {
+          sitekey: turnstileSiteKey,
+          theme: 'dark',
+          action: 'submit',
+        });
+      }
+    }
+
+    async function loadSession() {
+      setFeedback('Loading your invitation...', 'info');
+
+      const response = await fetch(`/api/rsvp/session?token=${encodeURIComponent(token)}`);
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        showLocked(result.error || neutralError);
+        return;
+      }
+
+      showPanel(responseForm);
+      populateInvite(result.invite);
+      setFeedback('Please complete your RSVP below.', 'info');
+
+      if (turnstileSiteKey) {
+        maybeRenderTurnstile();
+      }
+    }
+
+    gateForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      inviteCode = inviteCodeInput.value.trim();
+
+      if (!inviteCode) {
+        setFeedback('Please enter the invite code from your invitation.', 'error');
+        return;
+      }
+
+      setPending(gateForm, true);
+      setFeedback('Checking your invite code...', 'info');
+
+      try {
+        const response = await fetch('/api/rsvp/invite-code', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ inviteCode }),
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          setFeedback(result.error || 'Please enter the correct invite code from your invitation.', 'error');
+          return;
+        }
+
+        showPanel(surnameForm);
+        setFeedback('Enter the surname from your invitation to continue.', 'info');
+        surnameInput.focus();
+      } finally {
+        setPending(gateForm, false);
+      }
+    });
+
+    surnameForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      surname = surnameInput.value.trim();
+
+      if (!surname) {
+        setFeedback('Please enter your surname.', 'error');
+        return;
+      }
+
+      setPending(surnameForm, true);
+      setFeedback('Checking your invitation...', 'info');
+
+      const turnstileToken = lookupTurnstileWidgetId !== null && window.turnstile
+        ? window.turnstile.getResponse(lookupTurnstileWidgetId)
+        : '';
+
+      try {
+        const response = await fetch('/api/rsvp/lookup', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ inviteCode, surname, turnstileToken }),
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          setFeedback(result.error || neutralError, 'error');
+
+          if (window.turnstile && lookupTurnstileWidgetId !== null) {
+            window.turnstile.reset(lookupTurnstileWidgetId);
+          }
+
+          return;
+        }
+
+        if (result.needsFirstName) {
+          showPanel(firstNameForm);
+          setFeedback('Please enter one first name from your invitation.', 'info');
+          if (window.turnstile && firstNameTurnstileWidgetId !== null) {
+            window.turnstile.reset(firstNameTurnstileWidgetId);
+          }
+          firstNameInput.focus();
+          return;
+        }
+
+        window.location.assign(result.redirectUrl);
+      } finally {
+        setPending(surnameForm, false);
+      }
+    });
+
+    firstNameForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const firstName = firstNameInput.value.trim();
+
+      if (!firstName) {
+        setFeedback('Please enter a first name from your invitation.', 'error');
+        return;
+      }
+
+      setPending(firstNameForm, true);
+      setFeedback('Checking your invitation...', 'info');
+
+      const turnstileToken = firstNameTurnstileWidgetId !== null && window.turnstile
+        ? window.turnstile.getResponse(firstNameTurnstileWidgetId)
+        : '';
+
+      try {
+        const response = await fetch('/api/rsvp/lookup', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ inviteCode, surname, firstName, turnstileToken }),
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          setFeedback(result.error || neutralError, 'error');
+
+          if (window.turnstile && firstNameTurnstileWidgetId !== null) {
+            window.turnstile.reset(firstNameTurnstileWidgetId);
+          }
+
+          return;
+        }
+
+        window.location.assign(result.redirectUrl);
+      } finally {
+        setPending(firstNameForm, false);
+      }
+    });
+
+    responseForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setPending(responseForm, true);
+      setFeedback('Sending your RSVP...', 'info');
+
+      const formData = new FormData(responseForm);
+      const turnstileToken = submitTurnstileWidgetId !== null && window.turnstile
+        ? window.turnstile.getResponse(submitTurnstileWidgetId)
+        : '';
+
+      try {
+        const response = await fetch('/api/rsvp/submit', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+            attendanceStatus: formData.get('attendanceStatus'),
+            guestCount: formData.get('guestCount'),
+            guestNames: formData.get('guestNames'),
+            dietaryRequirements: formData.get('dietaryRequirements'),
+            songRequest: formData.get('songRequest'),
+            message: formData.get('message'),
+            turnstileToken,
+          }),
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          setFeedback(result.error || 'Please check your RSVP and try again.', 'error');
+
+          if (window.turnstile && submitTurnstileWidgetId !== null) {
+            window.turnstile.reset(submitTurnstileWidgetId);
+          }
+
+          return;
+        }
+
+        token = '';
+        window.history.replaceState({}, '', '/rsvp');
+        showPanel(successElement);
+        inviteSummaryElement.hidden = true;
+        setFeedback('Your RSVP has been received.', 'success');
+      } finally {
+        setPending(responseForm, false);
+      }
+    });
+
+    if (token) {
+      loadSession().catch(() => showLocked());
+    } else {
+      showPanel(gateForm);
+    }
+  </script>
+</BaseLayout>
