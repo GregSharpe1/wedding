@@ -1,0 +1,17 @@
+---
+const navItems = [
+  { href: '#intro', label: 'Save the Date' },
+  { href: '#welcome', label: 'Welcome' },
+  { href: '#location', label: 'Location & Time' },
+  { href: '#dress-code', label: 'Dress Code' },
+  { href: '#food', label: 'Food' },
+];
+---
+
+<header class="site-header">
+  <a class="brand" href="#intro" aria-label="Greg and Lucy wedding home">G + L</a>
+  <nav class="primary-nav" aria-label="Primary navigation">
+    {navItems.map((item) => <a href={item.href}>{item.label}</a>)}
+  </nav>
+  <a class="nav-cta" href="#rsvp">RSVP</a>
+</header>

@@ -1,0 +1,91 @@
+---
+import { existsSync } from 'node:fs';
+
+const trackPath = '/audio/wedding-track.mp3';
+const trackExists = existsSync(new URL('../../public/audio/wedding-track.mp3', import.meta.url));
+---
+
+{trackExists && (
+  <div class="music-player" data-music-player hidden>
+    <audio data-music-audio preload="none" src={trackPath}></audio>
+    <button class="music-button" type="button" data-music-button aria-pressed="false">
+      Play music
+    </button>
+  </div>
+)}
+
+{trackExists && <script>
+  const player = document.querySelector('[data-music-player]');
+  const audio = document.querySelector('[data-music-audio]');
+  const button = document.querySelector('[data-music-button]');
+
+  if (player instanceof HTMLElement && audio instanceof HTMLAudioElement && button instanceof HTMLButtonElement) {
+    let isTryingToPlay = false;
+    let isPlaying = false;
+
+    const showControl = () => {
+      player.hidden = false;
+    };
+
+    const updateButton = () => {
+      button.textContent = isPlaying ? 'Pause music' : 'Play music';
+      button.setAttribute('aria-pressed', String(isPlaying));
+    };
+
+    const tryPlay = async () => {
+      if (isTryingToPlay || isPlaying) return;
+      isTryingToPlay = true;
+      showControl();
+      try {
+        await audio.play();
+        isPlaying = true;
+        removeInteractionListeners();
+      } catch {
+        // Some browsers reject wheel/scroll. Keep listening for stronger gestures.
+        isPlaying = false;
+      } finally {
+        isTryingToPlay = false;
+      }
+      updateButton();
+    };
+
+    const handleFirstInteraction = () => {
+      void tryPlay();
+    };
+
+    function removeInteractionListeners() {
+      for (const eventName of interactionEvents) {
+        document.removeEventListener(eventName, handleFirstInteraction, true);
+      }
+    }
+
+    const interactionEvents = ['pointerdown', 'touchstart', 'keydown', 'wheel', 'scroll'];
+
+    for (const eventName of interactionEvents) {
+      document.addEventListener(eventName, handleFirstInteraction, { capture: true, passive: true });
+    }
+
+    button.addEventListener('click', async () => {
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+        updateButton();
+        return;
+      }
+
+      await tryPlay();
+    });
+
+    audio.addEventListener('ended', () => {
+      isPlaying = false;
+      updateButton();
+    });
+
+    audio.addEventListener('error', () => {
+      isPlaying = false;
+      showControl();
+      button.textContent = 'Music unavailable';
+      button.disabled = true;
+    });
+  }
+</script>}

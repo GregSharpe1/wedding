@@ -1,0 +1,117 @@
+---
+const hotels = [
+  {
+    tier: 'Budget',
+    name: 'Travelodge Cardiff Central',
+    distance: '~20 min walk · 5 min taxi',
+    description: 'Reliable, no-frills rooms in the city centre — the easiest cheap option close to the venue.',
+    href: 'https://www.travelodge.co.uk/hotels/504/Cardiff-Central-Queen-Street-hotel',
+    mapHref: 'https://www.google.com/maps/search/?api=1&query=Travelodge%20Cardiff%20Central%20Queen%20Street',
+    mapEmbed: 'https://www.google.com/maps?q=Travelodge%20Cardiff%20Central%20Queen%20Street&output=embed',
+  },
+  {
+    tier: 'Mid-range',
+    name: 'Hotel Indigo Cardiff',
+    distance: '~20 min walk · 5 min taxi',
+    description: 'Boutique city-centre hotel with a rooftop terrace and Welsh-inspired design. A lovely middle-ground stay.',
+    href: 'https://www.ihg.com/hotelindigo/hotels/gb/en/cardiff/cdfin/hoteldetail',
+    mapHref: 'https://www.google.com/maps/search/?api=1&query=Hotel%20Indigo%20Cardiff',
+    mapEmbed: 'https://www.google.com/maps?q=Hotel%20Indigo%20Cardiff&output=embed',
+  },
+  {
+    tier: 'Luxury',
+    name: "voco St. David's Cardiff",
+    distance: '~15 min taxi · Cardiff Bay',
+    description: "Five-star waterfront hotel on Cardiff Bay with a spa and harbour views — the treat-yourself option.",
+    href: 'https://www.ihg.com/voco/hotels/gb/en/cardiff/cwlbr/hoteldetail',
+    mapHref: 'https://www.google.com/maps/search/?api=1&query=voco%20St.%20David%27s%20Cardiff',
+    mapEmbed: 'https://www.google.com/maps?q=voco%20St.%20David%27s%20Cardiff&output=embed',
+  },
+];
+---
+
+<section class="section" id="location">
+  <div class="section-heading">
+    <p class="eyebrow">Where &amp; When</p>
+    <h2>Location &amp; Time</h2>
+  </div>
+
+  <div class="venue-card">
+    <article class="info-card reception-card">
+      <p class="label">Reception</p>
+      <p class="time">4:00 PM — 11:00 PM</p>
+      <h3>Tramshed</h3>
+      <p>Tramshed, Clare Road, Cardiff CF11 6QP</p>
+      <p>All guests welcome. Dinner, drinks and dancing in the old tram depot.</p>
+    </article>
+    <a
+      class="map-card"
+      href="https://www.google.com/maps/search/?api=1&query=Tramshed%2C%20Clare%20Road%2C%20Cardiff%20CF11%206QP"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Open Tramshed location in Google Maps"
+    >
+      <iframe
+        title="Map to Tramshed, Cardiff CF11 6QP"
+        src="https://www.google.com/maps?q=Tramshed%2C%20Clare%20Road%2C%20Cardiff%20CF11%206QP&output=embed"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
+      <div class="map-card-overlay">
+        <span>Find Us</span>
+        <strong>CF11 6QP</strong>
+      </div>
+    </a>
+  </div>
+
+  <div class="info-grid getting-there">
+    <article class="info-card">
+      <p class="label">Getting There</p>
+      <h3>Cardiff Central</h3>
+      <p class="muted">Closest train station · ~15 min walk</p>
+      <p>Cardiff Central is the nearest mainline station, with direct services from London, Bristol and beyond. Taxis are readily available outside the station.</p>
+    </article>
+    <article class="info-card">
+      <p class="label">Parking</p>
+      <h3>On-site &amp; Nearby</h3>
+      <p class="muted">Free street parking after 6pm</p>
+      <p>Limited parking is available around the venue. Additional paid parking can be found at NCP Clare Road and Capitol Centre car parks, both within a short walk.</p>
+    </article>
+  </div>
+
+  <div class="section-heading compact">
+    <p class="eyebrow">Stay Nearby</p>
+    <h3>Hotels</h3>
+  </div>
+  <div class="hotel-grid">
+    {hotels.map((hotel) => (
+      <article class="hotel-card">
+        <p class="label">{hotel.tier}</p>
+        <h4>{hotel.name}</h4>
+        <p class="muted">{hotel.distance}</p>
+        <p>{hotel.description}</p>
+        <a
+          class="hotel-map"
+          href={hotel.mapHref}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Open ${hotel.name} in Google Maps`}
+        >
+          <iframe
+            title={`Map to ${hotel.name}`}
+            src={hotel.mapEmbed}
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+          <div class="hotel-map-overlay">
+            <span>View Map</span>
+          </div>
+        </a>
+        <div class="hotel-links">
+          <a href={hotel.href} target="_blank" rel="noreferrer">View hotel</a>
+          <a href={hotel.mapHref} target="_blank" rel="noreferrer">Directions</a>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>

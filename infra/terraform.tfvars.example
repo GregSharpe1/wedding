@@ -1,0 +1,7 @@
+staging_project_name    = "thesharpes-wedding-staging"
+production_project_name = "thesharpes-wedding"
+production_branch       = "main"
+staging_domain          = "staging.thesharpes.wedding"
+production_domain       = "thesharpes.wedding"
+production_www_domain   = "www.thesharpes.wedding"
+enable_production       = true

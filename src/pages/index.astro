@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Welcome from '../components/Welcome.astro';
+import Location from '../components/Location.astro';
+import DressCode from '../components/DressCode.astro';
+import Food from '../components/Food.astro';
+import RsvpForm from '../components/RsvpForm.astro';
+import MusicPlayer from '../components/MusicPlayer.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="The Sharpes — Wedding" description="Wedding details for Greg and Lucy in Cardiff on Sunday 30th May 2027.">
+  <Header />
+  <main>
+    <Hero />
+    <Welcome />
+    <Location />
+    <DressCode />
+    <Food />
+    <RsvpForm />
+  </main>
+  <MusicPlayer />
+  <Footer />
+</BaseLayout>
