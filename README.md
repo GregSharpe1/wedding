@@ -57,3 +57,5 @@ Until the file exists, the music player is not rendered, so there is no broken a
 ## RSVP
 
 The RSVP flow lives on `/rsvp` and depends on the Cloudflare resources managed under `infra/staging` and `infra/production`.
+
+If `RSVP_SLACK_NOTIFY_TOKEN` and `SLACK_WEBHOOK_URL` are configured through Terraform, successful RSVP submissions also trigger a Slack notification.

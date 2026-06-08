@@ -1,3 +1,8 @@
+resource "random_password" "rsvp_slack_notify_token" {
+  length  = 48
+  special = false
+}
+
 resource "cloudflare_turnstile_widget" "rsvp" {
   account_id = var.cloudflare_account_id
   name       = var.turnstile_widget_name
@@ -44,6 +49,14 @@ resource "cloudflare_pages_project" "site" {
           type  = "secret_text"
           value = var.rsvp_invite_code
         }
+        RSVP_SLACK_NOTIFY_TOKEN = {
+          type  = "secret_text"
+          value = random_password.rsvp_slack_notify_token.result
+        }
+        SLACK_WEBHOOK_URL = {
+          type  = "secret_text"
+          value = var.slack_webhook_url
+        }
         TURNSTILE_SECRET_KEY = {
           type  = "secret_text"
           value = cloudflare_turnstile_widget.rsvp.secret
@@ -65,6 +78,14 @@ resource "cloudflare_pages_project" "site" {
         RSVP_INVITE_CODE = {
           type  = "secret_text"
           value = var.rsvp_invite_code
+        }
+        RSVP_SLACK_NOTIFY_TOKEN = {
+          type  = "secret_text"
+          value = random_password.rsvp_slack_notify_token.result
+        }
+        SLACK_WEBHOOK_URL = {
+          type  = "secret_text"
+          value = var.slack_webhook_url
         }
         TURNSTILE_SECRET_KEY = {
           type  = "secret_text"

@@ -3,5 +3,8 @@ terraform {
     cloudflare = {
       source = "cloudflare/cloudflare"
     }
+    random = {
+      source = "hashicorp/random"
+    }
   }
 }

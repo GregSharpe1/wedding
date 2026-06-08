@@ -17,6 +17,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
     ok: true,
     invite: {
       title: formatInviteTitle(invite),
+      inviteType: invite.inviteType,
       people: invite.people,
     },
   });

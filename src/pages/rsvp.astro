@@ -22,12 +22,14 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
         <div class="rsvp-panel" id="rsvp-invite-summary" hidden>
           <p class="label">Invitation Found</p>
           <h3 id="rsvp-invite-title"></h3>
+          <p class="rsvp-invite-type" id="rsvp-invite-type"></p>
           <p id="rsvp-invite-people"></p>
+          <div class="rsvp-helper rsvp-invite-copy" id="attendance-helper">If you need to bring someone else, please contact Greg or Lucy directly.</div>
         </div>
 
         <form class="rsvp-panel rsvp-form" id="invite-code-form">
           <label>
-            <span class="rsvp-field-heading">Invite code</span>
+            <span class="rsvp-field-heading rsvp-step-heading">Invite code</span>
             <input autocomplete="one-time-code" id="invite-code" name="inviteCode" type="text" />
             <span class="rsvp-field-helper">Enter the shared code from your invitation.</span>
           </label>
@@ -36,7 +38,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 
         <form class="rsvp-panel rsvp-form" id="surname-form" hidden>
           <label>
-            <span class="rsvp-field-heading">Surname</span>
+            <span class="rsvp-field-heading rsvp-step-heading">Surname</span>
             <input autocomplete="family-name" id="surname" name="surname" type="text" />
             <span class="rsvp-field-helper">Use the surname printed on your invitation.</span>
           </label>
@@ -70,24 +72,28 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
           <button type="submit">Continue</button>
         </form>
 
-        <form class="rsvp-panel rsvp-form-panel" id="response-form" hidden>
+        <form class="rsvp-panel rsvp-form rsvp-form-panel" id="response-form" hidden>
           <fieldset>
-            <legend>Attendance</legend>
-            <div class="radio-row">
-              <label>
-                <input checked name="attendanceStatus" type="radio" value="accepts" />
-                Joyfully accepts
-              </label>
-              <label>
-                <input name="attendanceStatus" type="radio" value="declines" />
-                Regretfully declines
-              </label>
+            <legend id="attendance-legend">Attendance</legend>
+            <div class="rsvp-attendees-list" id="attendees-list">
+              <template id="attendee-item-template">
+                <div class="rsvp-attendee-item">
+                  <p class="rsvp-attendee-name"></p>
+                  <div class="radio-row rsvp-attendee-options">
+                    <label>
+                      <input type="radio" value="attending" />
+                      <span>Attending</span>
+                    </label>
+                    <label>
+                      <input type="radio" value="not_attending" />
+                      <span>Not attending</span>
+                    </label>
+                  </div>
+                </div>
+              </template>
             </div>
-            <p class="rsvp-helper">If you need to bring someone else, please contact Greg or Lucy directly.</p>
           </fieldset>
 
-          <input name="guestCount" type="hidden" value="1" />
-          <input name="guestNames" type="hidden" value="" />
           <input name="dietaryRequirements" type="hidden" value="" />
 
           <label>
@@ -136,7 +142,12 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const feedbackElement = document.getElementById('rsvp-feedback');
     const inviteSummaryElement = document.getElementById('rsvp-invite-summary');
     const inviteTitleElement = document.getElementById('rsvp-invite-title');
+    const inviteTypeElement = document.getElementById('rsvp-invite-type');
     const invitePeopleElement = document.getElementById('rsvp-invite-people');
+    const attendanceLegend = document.getElementById('attendance-legend');
+    const attendanceHelper = document.getElementById('attendance-helper');
+    const attendeesList = document.getElementById('attendees-list');
+    const attendeeItemTemplate = document.getElementById('attendee-item-template');
     const lockedElement = document.getElementById('rsvp-locked');
     const lockedMessageElement = document.getElementById('rsvp-locked-message');
     const successElement = document.getElementById('rsvp-success');
@@ -152,6 +163,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
     let inviteCode = '';
     let surname = '';
     let token = new URL(window.location.href).searchParams.get('token')?.trim() ?? '';
+    let inviteType = 'day';
+    let invitePeople = [];
     let submitTurnstileWidgetId = null;
     let lookupTurnstileWidgetId = null;
     let firstNameTurnstileWidgetId = null;
@@ -184,7 +197,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       panel.hidden = false;
 
       if (turnstileSiteKey) {
-        maybeRenderTurnstile();
+        maybeRenderTurnstile(panel);
       }
     }
 
@@ -194,13 +207,71 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       }
 
       const submitButton = form.querySelector('button[type="submit"]');
+      form.dataset.pending = pending ? 'true' : 'false';
+
       if (submitButton) {
-        submitButton.disabled = pending;
+        const requiresVerification = turnstileSiteKey && (form === surnameForm || form === firstNameForm || form === responseForm);
+        const verificationReady = form.dataset.verificationReady === 'true';
+        submitButton.disabled = pending || (requiresVerification && !verificationReady);
+      }
+    }
+
+    function setVerificationReady(form, ready) {
+      if (!form) {
+        return;
+      }
+
+      form.dataset.verificationReady = ready ? 'true' : 'false';
+      setPending(form, form.dataset.pending === 'true');
+    }
+
+    function applyInviteTypeCopy(nextInviteType) {
+      inviteType = nextInviteType === 'evening' ? 'evening' : 'day';
+
+      if (inviteTypeElement) {
+        inviteTypeElement.textContent = inviteType === 'evening' ? 'Party Guest' : 'Day Guest';
+      }
+
+      if (attendanceLegend) {
+        attendanceLegend.textContent = inviteType === 'evening' ? 'Who will be joining us for the party?' : 'Who will be joining us for the day?';
+      }
+
+      if (attendanceHelper) {
+        attendanceHelper.innerHTML = inviteType === 'evening'
+          ? '<p>We would love for you to join us as party guests at The Tramshed to celebrate with us. Expect good music, plenty of dancing, and a proper party.</p><p>If anything changes, please contact Greg or Lucy directly.</p>'
+          : '<p>The celebrations kick off with our ceremony at the Registry Office at 2:00 PM, where we\'ll officially tie the knot! Afterward, we\'ll head to a local pub for a drink, laughter, and a few speeches (don\'t worry, we\'ll try to keep them short!).</p><p>Once the toasts are done, transport will be provided to take everyone to The Tramshed, where the real party begins. Bring your dancing shoes - we can\'t wait to celebrate with you!</p><p>If you need to bring someone else, please contact Greg or Lucy directly.</p>';
+      }
+    }
+
+    function renderAttendees(people) {
+      invitePeople = people;
+
+      if (!attendeesList || !attendeeItemTemplate) {
+        return;
+      }
+
+      attendeesList.innerHTML = '';
+
+      for (const person of people) {
+        const fragment = attendeeItemTemplate.content.cloneNode(true);
+        const attendeeName = fragment.querySelector('.rsvp-attendee-name');
+        const attendeeInputs = fragment.querySelectorAll('input[type="radio"]');
+
+        attendeeName.textContent = `${person.firstName} ${person.surname}`;
+
+        attendeeInputs.forEach((input) => {
+          input.name = `attendee-${person.id}`;
+          input.dataset.invitePersonId = String(person.id);
+        });
+
+        attendeesList.appendChild(fragment);
       }
     }
 
     function populateInvite(invite) {
       inviteTitleElement.textContent = invite.title;
+      applyInviteTypeCopy(invite.inviteType);
+      renderAttendees(invite.people);
       invitePeopleElement.textContent = invite.people.map((person) => `${person.firstName} ${person.surname}`).join(' and ');
       inviteSummaryElement.hidden = false;
     }
@@ -211,37 +282,49 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       setFeedback('');
     }
 
-    function maybeRenderTurnstile() {
+    function maybeRenderTurnstile(activePanel) {
       if (!turnstileSiteKey) {
         return;
       }
 
       if (!window.turnstile) {
-        window.setTimeout(maybeRenderTurnstile, 200);
+        window.setTimeout(() => maybeRenderTurnstile(activePanel), 200);
         return;
       }
 
-      if (lookupTurnstileWidgetId === null) {
+      if (activePanel === surnameForm && lookupTurnstileWidgetId === null) {
+        setVerificationReady(surnameForm, false);
         lookupTurnstileWidgetId = window.turnstile.render('#lookup-turnstile-widget', {
           sitekey: turnstileSiteKey,
           theme: 'dark',
           action: 'lookup',
+          callback: () => setVerificationReady(surnameForm, true),
+          'expired-callback': () => setVerificationReady(surnameForm, false),
+          'error-callback': () => setVerificationReady(surnameForm, false),
         });
       }
 
-      if (firstNameTurnstileWidgetId === null) {
+      if (activePanel === firstNameForm && firstNameTurnstileWidgetId === null) {
+        setVerificationReady(firstNameForm, false);
         firstNameTurnstileWidgetId = window.turnstile.render('#first-name-turnstile-widget', {
           sitekey: turnstileSiteKey,
           theme: 'dark',
           action: 'lookup',
+          callback: () => setVerificationReady(firstNameForm, true),
+          'expired-callback': () => setVerificationReady(firstNameForm, false),
+          'error-callback': () => setVerificationReady(firstNameForm, false),
         });
       }
 
-      if (submitTurnstileWidgetId === null) {
+      if (activePanel === responseForm && submitTurnstileWidgetId === null) {
+        setVerificationReady(responseForm, false);
         submitTurnstileWidgetId = window.turnstile.render('#turnstile-widget', {
           sitekey: turnstileSiteKey,
           theme: 'dark',
           action: 'submit',
+          callback: () => setVerificationReady(responseForm, true),
+          'expired-callback': () => setVerificationReady(responseForm, false),
+          'error-callback': () => setVerificationReady(responseForm, false),
         });
       }
     }
@@ -262,7 +345,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       setFeedback('Please complete your RSVP below.', 'info');
 
       if (turnstileSiteKey) {
-        maybeRenderTurnstile();
+        maybeRenderTurnstile(responseForm);
       }
     }
 
@@ -331,6 +414,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
           setFeedback(result.error || neutralError, 'error');
 
           if (window.turnstile && lookupTurnstileWidgetId !== null) {
+            setVerificationReady(surnameForm, false);
             window.turnstile.reset(lookupTurnstileWidgetId);
           }
 
@@ -341,6 +425,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
           showPanel(firstNameForm);
           setFeedback('Please enter one first name from your invitation.', 'info');
           if (window.turnstile && firstNameTurnstileWidgetId !== null) {
+            setVerificationReady(firstNameForm, false);
             window.turnstile.reset(firstNameTurnstileWidgetId);
           }
           firstNameInput.focus();
@@ -383,6 +468,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
           setFeedback(result.error || neutralError, 'error');
 
           if (window.turnstile && firstNameTurnstileWidgetId !== null) {
+            setVerificationReady(firstNameForm, false);
             window.turnstile.reset(firstNameTurnstileWidgetId);
           }
 
@@ -401,6 +487,10 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       setFeedback('Sending your RSVP...', 'info');
 
       const formData = new FormData(responseForm);
+      const attendees = invitePeople.map((person) => ({
+        invitePersonId: person.id,
+        attendanceStatus: formData.get(`attendee-${person.id}`),
+      }));
       const turnstileToken = submitTurnstileWidgetId !== null && window.turnstile
         ? window.turnstile.getResponse(submitTurnstileWidgetId)
         : '';
@@ -413,9 +503,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
           },
           body: JSON.stringify({
             token,
-            attendanceStatus: formData.get('attendanceStatus'),
-            guestCount: formData.get('guestCount'),
-            guestNames: formData.get('guestNames'),
+            attendees,
             dietaryRequirements: formData.get('dietaryRequirements'),
             songRequest: formData.get('songRequest'),
             message: formData.get('message'),
@@ -428,6 +516,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
           setFeedback(result.error || 'Please check your RSVP and try again.', 'error');
 
           if (window.turnstile && submitTurnstileWidgetId !== null) {
+            setVerificationReady(responseForm, false);
             window.turnstile.reset(submitTurnstileWidgetId);
           }
 

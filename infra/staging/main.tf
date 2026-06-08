@@ -9,6 +9,7 @@ module "site" {
   primary_dns_comment   = "Managed by Terraform for the staging Pages site."
   d1_database_name      = var.d1_database_name
   rsvp_invite_code      = var.rsvp_invite_code
+  slack_webhook_url     = var.slack_webhook_url
   turnstile_widget_name = var.turnstile_widget_name
   turnstile_domains     = [var.domain]
   compatibility_date    = var.compatibility_date

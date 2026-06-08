@@ -1,11 +1,13 @@
 export const NEUTRAL_ERROR_MESSAGE =
   "We couldn't open an RSVP from those details. If you've already replied or need help, please contact Greg or Lucy.";
 
-const ATTENDANCE_VALUES = new Set(['accepts', 'declines']);
+const PERSON_ATTENDANCE_VALUES = new Set(['attending', 'not_attending']);
 
 export interface Env {
   DB: D1Database;
   RSVP_INVITE_CODE?: string;
+  RSVP_SLACK_NOTIFY_TOKEN?: string;
+  SLACK_WEBHOOK_URL?: string;
   TURNSTILE_SECRET_KEY?: string;
 }
 
@@ -15,9 +17,11 @@ const LOOKUP_MAX_ATTEMPTS = 10;
 interface InviteRow {
   invite_id: number;
   label: string | null;
+  invite_type: 'day' | 'evening';
   surname: string;
   token: string;
   status: 'pending' | 'submitted';
+  invite_person_id: number;
   first_name: string;
   person_surname: string;
 }
@@ -25,23 +29,37 @@ interface InviteRow {
 export interface InviteRecord {
   id: number;
   label: string | null;
+  inviteType: 'day' | 'evening';
   surname: string;
   token: string;
   status: 'pending' | 'submitted';
   people: Array<{
+    id: number;
     firstName: string;
     surname: string;
   }>;
 }
 
 export interface SubmitPayload {
-  attendanceStatus: string;
-  guestCount: unknown;
-  guestNames: unknown;
+  attendees: unknown;
   dietaryRequirements: unknown;
   songRequest: unknown;
   message: unknown;
   turnstileToken: unknown;
+}
+
+export interface ValidatedSubmitPayload {
+  attendees: Array<{
+    invitePersonId: number;
+    attendanceStatus: 'attending' | 'not_attending';
+  }>;
+  attendanceStatus: 'accepts' | 'declines';
+  guestCount: number;
+  guestNames: string;
+  dietaryRequirements: string;
+  songRequest: string;
+  message: string;
+  turnstileToken: string;
 }
 
 interface TurnstileVerificationResult {
@@ -123,6 +141,7 @@ function groupInvites(rows: InviteRow[]): InviteRecord[] {
     const invite = invites.get(row.invite_id) ?? {
       id: row.invite_id,
       label: row.label,
+      inviteType: row.invite_type,
       surname: row.surname,
       token: row.token,
       status: row.status,
@@ -130,6 +149,7 @@ function groupInvites(rows: InviteRow[]): InviteRecord[] {
     };
 
     invite.people.push({
+      id: row.invite_person_id,
       firstName: row.first_name,
       surname: row.person_surname,
     });
@@ -145,9 +165,11 @@ async function loadInviteRows(env: Env, whereClause: string, binding: string) {
     `SELECT
       invites.id AS invite_id,
       invites.label,
+      invites.invite_type,
       invites.surname,
       invites.token,
       invites.status,
+      invite_people.id AS invite_person_id,
       invite_people.first_name,
       invite_people.surname AS person_surname
     FROM invites
@@ -190,30 +212,60 @@ function requireLength(value: string, maxLength: number, message: string) {
   }
 }
 
-export function validateSubmitPayload(payload: SubmitPayload) {
-  const attendanceStatus = normalizeText(payload.attendanceStatus);
-
-  if (!ATTENDANCE_VALUES.has(attendanceStatus)) {
-    throw new Error('Please choose whether you can attend.');
+function normalizeAttendees(value: unknown) {
+  if (!Array.isArray(value)) {
+    throw new Error('Please respond for each invited guest.');
   }
 
-  const parsedGuestCount = Number(payload.guestCount);
+  return value.map((attendee) => {
+    if (!attendee || typeof attendee !== 'object') {
+      throw new Error('Please respond for each invited guest.');
+    }
 
-  if (!Number.isInteger(parsedGuestCount) || parsedGuestCount < 1 || parsedGuestCount > 2) {
-    throw new Error('Please choose a guest count between 1 and 2.');
-  }
+    const invitePersonId = Number((attendee as { invitePersonId?: unknown }).invitePersonId);
+    const attendanceStatus = normalizeText((attendee as { attendanceStatus?: unknown }).attendanceStatus);
 
-  const guestNames = normalizeText(payload.guestNames);
+    if (!Number.isInteger(invitePersonId) || invitePersonId < 1) {
+      throw new Error('Please respond for each invited guest.');
+    }
+
+    if (!PERSON_ATTENDANCE_VALUES.has(attendanceStatus)) {
+      throw new Error('Please choose attending or not attending for each invited guest.');
+    }
+
+    return {
+      invitePersonId,
+      attendanceStatus: attendanceStatus as 'attending' | 'not_attending',
+    };
+  });
+}
+
+export function validateSubmitPayload(payload: SubmitPayload, invite: InviteRecord): ValidatedSubmitPayload {
+  const attendees = normalizeAttendees(payload.attendees);
   const dietaryRequirements = normalizeText(payload.dietaryRequirements);
   const songRequest = normalizeText(payload.songRequest);
   const message = normalizeText(payload.message);
   const turnstileToken = normalizeText(payload.turnstileToken);
 
-  if (attendanceStatus === 'accepts' && parsedGuestCount > 1 && !guestNames) {
-    throw new Error('Please enter the name of your second guest.');
+  if (attendees.length !== invite.people.length) {
+    throw new Error('Please respond for each invited guest.');
   }
 
-  requireLength(guestNames, 1000, 'Guest names must be 1000 characters or fewer.');
+  const invitePersonIds = new Set(invite.people.map((person) => person.id));
+  const seenPersonIds = new Set<number>();
+
+  for (const attendee of attendees) {
+    if (!invitePersonIds.has(attendee.invitePersonId)) {
+      throw new Error('Please respond only for the guests listed on your invitation.');
+    }
+
+    if (seenPersonIds.has(attendee.invitePersonId)) {
+      throw new Error('Please respond for each invited guest once.');
+    }
+
+    seenPersonIds.add(attendee.invitePersonId);
+  }
+
   requireLength(dietaryRequirements, 1000, 'Dietary requirements must be 1000 characters or fewer.');
   requireLength(songRequest, 300, 'Song requests must be 300 characters or fewer.');
   requireLength(message, 1500, 'Your message must be 1500 characters or fewer.');
@@ -222,15 +274,36 @@ export function validateSubmitPayload(payload: SubmitPayload) {
     throw new Error('We could not verify your submission. Please try again.');
   }
 
+  const attendingPeople = attendees.filter((attendee) => attendee.attendanceStatus === 'attending');
+  const guestNames = invite.people
+    .filter((person) => attendingPeople.some((attendee) => attendee.invitePersonId === person.id))
+    .map((person) => `${person.firstName} ${person.surname}`)
+    .join(', ');
+
   return {
-    attendanceStatus: attendanceStatus as 'accepts' | 'declines',
-    guestCount: parsedGuestCount,
+    attendees,
+    attendanceStatus: (attendingPeople.length > 0 ? 'accepts' : 'declines') as 'accepts' | 'declines',
+    guestCount: Math.max(attendingPeople.length, 1),
     guestNames,
     dietaryRequirements,
     songRequest,
     message,
     turnstileToken,
   };
+}
+
+export function buildNotifyUrl(request: Request) {
+  return new URL('/api/rsvp/slack', request.url).toString();
+}
+
+export function isValidNotifyToken(env: Env, request: Request) {
+  const configuredToken = normalizeText(env.RSVP_SLACK_NOTIFY_TOKEN);
+
+  if (!configuredToken) {
+    return false;
+  }
+
+  return normalizeText(request.headers.get('x-rsvp-slack-token')) === configuredToken;
 }
 
 export async function verifyTurnstile(request: Request, env: Env, token: string, expectedAction: string) {

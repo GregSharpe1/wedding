@@ -1,6 +1,7 @@
 CREATE TABLE invites (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   label TEXT,
+  invite_type TEXT NOT NULL DEFAULT 'day' CHECK (invite_type IN ('day', 'evening')),
   surname TEXT NOT NULL,
   token TEXT NOT NULL UNIQUE,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'submitted')),
@@ -20,7 +21,7 @@ CREATE TABLE rsvps (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   invite_id INTEGER NOT NULL UNIQUE,
   attendance_status TEXT NOT NULL CHECK (attendance_status IN ('accepts', 'declines')),
-  guest_count INTEGER NOT NULL CHECK (guest_count BETWEEN 1 AND 2),
+  guest_count INTEGER NOT NULL CHECK (guest_count >= 1),
   guest_names TEXT,
   dietary_requirements TEXT,
   song_request TEXT,

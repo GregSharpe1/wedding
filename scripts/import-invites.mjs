@@ -50,6 +50,16 @@ function createToken() {
   return randomBytes(24).toString('base64url');
 }
 
+function normalizeInviteType(value) {
+  const inviteType = String(value ?? 'day').trim().toLowerCase();
+
+  if (inviteType !== 'day' && inviteType !== 'evening') {
+    throw new Error(`Invalid inviteType '${value}'. Use 'day' or 'evening'.`);
+  }
+
+  return inviteType;
+}
+
 function buildInviteExistsClause(invite) {
   const labelValue = invite.label ? `'${escapeSql(invite.label)}'` : 'NULL';
   const peopleCount = invite.people.length;
@@ -64,6 +74,7 @@ function buildInviteExistsClause(invite) {
     SELECT 1
     FROM invites existing_invites
     WHERE existing_invites.surname = '${escapeSql(invite.surname)}'
+      AND existing_invites.invite_type = '${invite.inviteType}'
       AND ${invite.label ? `existing_invites.label = ${labelValue}` : 'existing_invites.label IS NULL'}
       AND (
         SELECT COUNT(*)
@@ -89,8 +100,8 @@ function validateInvite(invite, inviteIndex) {
     throw new Error(`Invite ${inviteIndex + 1} must be an object.`);
   }
 
-  if (!Array.isArray(invite.people) || invite.people.length < 1 || invite.people.length > 2) {
-    throw new Error(`Invite ${inviteIndex + 1} must contain 1 or 2 people.`);
+  if (!Array.isArray(invite.people) || invite.people.length < 1) {
+    throw new Error(`Invite ${inviteIndex + 1} must contain at least 1 person.`);
   }
 
   const normalizedPeople = invite.people.map((person, personIndex) => {
@@ -118,6 +129,7 @@ function validateInvite(invite, inviteIndex) {
 
   return {
     label: typeof invite.label === 'string' ? invite.label.trim() : '',
+    inviteType: normalizeInviteType(invite.inviteType),
     surname,
     people: normalizedPeople,
   };
@@ -138,8 +150,8 @@ function buildSql(invites, clearExisting) {
     const inviteExistsClause = buildInviteExistsClause(invite);
 
     statements.push(
-      `INSERT INTO invites (label, surname, token)
-       SELECT ${labelValue}, '${escapeSql(invite.surname)}', '${token}'
+      `INSERT INTO invites (label, invite_type, surname, token)
+       SELECT ${labelValue}, '${invite.inviteType}', '${escapeSql(invite.surname)}', '${token}'
        WHERE NOT ${inviteExistsClause};`
     );
 

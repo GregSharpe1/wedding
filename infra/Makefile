@@ -8,6 +8,8 @@ STAGING_DIR := staging
 PRODUCTION_DIR := production
 INVITES_FILE_STAGING ?= $(abspath $(ROOT_DIR)/invites/staging.json)
 INVITES_FILE_PROD ?= $(abspath $(ROOT_DIR)/invites/prod.json)
+STAGING_SLACK_WEBHOOK_URL ?= $(SLACK_WEBHOOK_URL)
+PRODUCTION_SLACK_WEBHOOK_URL ?= $(SLACK_WEBHOOK_URL)
 
 export TF_VAR_cloudflare_account_id = $(CLOUDFLARE_ACCOUNT_ID)
 export TF_VAR_cloudflare_zone_id = $(CLOUDFLARE_ZONE_ID)
@@ -26,6 +28,22 @@ init-staging: check-env
 
 init-production: check-env
 	terraform -chdir="$(PRODUCTION_DIR)" init
+
+init-staging: export TF_VAR_slack_webhook_url = $(STAGING_SLACK_WEBHOOK_URL)
+
+validate-staging: export TF_VAR_slack_webhook_url = $(STAGING_SLACK_WEBHOOK_URL)
+
+plan-staging: export TF_VAR_slack_webhook_url = $(STAGING_SLACK_WEBHOOK_URL)
+
+apply-staging: export TF_VAR_slack_webhook_url = $(STAGING_SLACK_WEBHOOK_URL)
+
+init-production: export TF_VAR_slack_webhook_url = $(PRODUCTION_SLACK_WEBHOOK_URL)
+
+validate-production: export TF_VAR_slack_webhook_url = $(PRODUCTION_SLACK_WEBHOOK_URL)
+
+plan-production: export TF_VAR_slack_webhook_url = $(PRODUCTION_SLACK_WEBHOOK_URL)
+
+apply-production: export TF_VAR_slack_webhook_url = $(PRODUCTION_SLACK_WEBHOOK_URL)
 
 fmt:
 	terraform fmt -recursive

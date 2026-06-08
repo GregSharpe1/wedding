@@ -9,6 +9,7 @@ import {
   verifyTurnstile,
   type Env,
 } from './_lib';
+import { sendSlackRsvpNotification } from './slack';
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   if (!isAllowedRequestOrigin(request)) {
@@ -36,7 +37,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   let payload;
 
   try {
-    payload = validateSubmitPayload(body);
+    payload = validateSubmitPayload(body, invite);
   } catch (error) {
     return json(
       { ok: false, error: error instanceof Error ? error.message : 'Please check your RSVP and try again.' },
@@ -49,6 +50,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   if (!turnstileValid) {
     return json({ ok: false, error: 'We could not verify your submission. Please try again.' }, { status: 400 });
   }
+
+  const attendeeStatements = payload.attendees.map((attendee) =>
+    env.DB.prepare(
+      `INSERT INTO rsvp_attendees (
+        invite_id,
+        invite_person_id,
+        attendance_status
+      ) VALUES (?1, ?2, ?3)`
+    ).bind(invite.id, attendee.invitePersonId, attendee.attendanceStatus)
+  );
 
   const insertResult = await env.DB.batch([
     env.DB.prepare(
@@ -70,15 +81,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       payload.songRequest || null,
       payload.message || null
     ),
+    ...attendeeStatements,
     env.DB.prepare(`UPDATE invites SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP WHERE id = ?1 AND status = 'pending'`).bind(
       invite.id
     ),
   ]);
 
-  const updatedInvite = insertResult[1];
+  const updatedInvite = insertResult[insertResult.length - 1];
 
   if (!updatedInvite.success) {
     return json({ ok: false, error: NEUTRAL_ERROR_MESSAGE }, { status: 409 });
+  }
+
+  try {
+    await sendSlackRsvpNotification(request, env, invite, payload);
+  } catch (error) {
+    console.error('Failed to send RSVP Slack notification', error);
   }
 
   return json({ ok: true });

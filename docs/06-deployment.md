@@ -66,6 +66,13 @@ Add public site key for the frontend build:
 PUBLIC_TURNSTILE_SITE_KEY
 ```
 
+Optional Slack notification variables:
+
+```text
+RSVP_SLACK_NOTIFY_TOKEN
+SLACK_WEBHOOK_URL
+```
+
 ## Turnstile Setup
 
 1. Terraform creates the Turnstile widget.
@@ -91,5 +98,6 @@ Before sharing the site:
 - Submit an RSVP accepting.
 - Submit an RSVP declining.
 - Verify D1 rows are created.
+- Verify the Slack message arrives if notifications are configured.
 - Test validation errors.
 - Test Turnstile protection in staging and production.

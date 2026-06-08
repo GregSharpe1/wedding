@@ -1,6 +1,7 @@
 [
   {
     "label": "Greg and Lucy",
+    "inviteType": "day",
     "people": [
       { "firstName": "Greg", "surname": "Sharpe" },
       { "firstName": "Lucy", "surname": "Sharpe" }
@@ -8,6 +9,7 @@
   },
   {
     "label": "Sam and Priya",
+    "inviteType": "day",
     "people": [
       { "firstName": "Sam", "surname": "Patel" },
       { "firstName": "Priya", "surname": "Patel" }
@@ -15,19 +17,24 @@
   },
   {
     "label": "Alex Jones",
+    "inviteType": "evening",
     "people": [
       { "firstName": "Alex", "surname": "Jones" }
     ]
   },
   {
-    "label": "Tom and Hannah",
+    "label": "Tom, Hannah, Isla and Noah",
+    "inviteType": "day",
     "people": [
       { "firstName": "Tom", "surname": "Evans" },
-      { "firstName": "Hannah", "surname": "Evans" }
+      { "firstName": "Hannah", "surname": "Evans" },
+      { "firstName": "Isla", "surname": "Evans" },
+      { "firstName": "Noah", "surname": "Evans" }
     ]
   },
   {
     "label": "Megan and Rhys",
+    "inviteType": "day",
     "people": [
       { "firstName": "Megan", "surname": "Morgan" },
       { "firstName": "Rhys", "surname": "Morgan" }
@@ -35,6 +42,7 @@
   },
   {
     "label": "Charlotte and Ben",
+    "inviteType": "day",
     "people": [
       { "firstName": "Charlotte", "surname": "Davies" },
       { "firstName": "Ben", "surname": "Davies" }
@@ -42,6 +50,7 @@
   },
   {
     "label": "Edward and Thomas",
+    "inviteType": "evening",
     "people": [
       { "firstName": "Edward", "surname": "Davies" },
       { "firstName": "Thomas", "surname": "Davies" }
@@ -49,6 +58,7 @@
   },
   {
     "label": "Emma and Jack",
+    "inviteType": "day",
     "people": [
       { "firstName": "Emma", "surname": "Taylor" },
       { "firstName": "Jack", "surname": "Taylor" }
@@ -56,6 +66,7 @@
   },
   {
     "label": "Daniel and Sophie",
+    "inviteType": "evening",
     "people": [
       { "firstName": "Daniel", "surname": "Lewis" },
       { "firstName": "Sophie", "surname": "Lewis" }
@@ -63,6 +74,7 @@
   },
   {
     "label": "Olivia and Ryan",
+    "inviteType": "day",
     "people": [
       { "firstName": "Olivia", "surname": "Williams" },
       { "firstName": "Ryan", "surname": "Williams" }
@@ -70,6 +82,7 @@
   },
   {
     "label": "James and Beth",
+    "inviteType": "evening",
     "people": [
       { "firstName": "James", "surname": "Thomas" },
       { "firstName": "Beth", "surname": "Thomas" }

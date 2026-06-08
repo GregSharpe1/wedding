@@ -19,7 +19,9 @@ const navItems = [
 <header class="site-header">
   <a class="brand" href={onHome ? '#intro' : '/'} aria-label="Greg and Lucy wedding home">G + L</a>
   <nav class="primary-nav" aria-label="Primary navigation">
-    {navItems.map((item) => <a href={item.href}>{item.label}</a>)}
+    {navItems.map((item) => (
+      <a class="primary-nav-link" href={item.href}>{item.label}</a>
+    ))}
   </nav>
   <a class="nav-cta" href="/rsvp">RSVP</a>
 </header>

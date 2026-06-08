@@ -39,6 +39,12 @@ variable "rsvp_invite_code" {
   sensitive = true
 }
 
+variable "slack_webhook_url" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
 variable "turnstile_widget_name" {
   type = string
 }
