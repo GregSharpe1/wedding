@@ -28,6 +28,11 @@ output "d1_database_id" {
   value       = module.site.d1_database_id
 }
 
+output "backup_bucket_name" {
+  description = "Cloudflare R2 bucket name for staging RSVP backups."
+  value       = cloudflare_r2_bucket.backups.name
+}
+
 output "turnstile_site_key" {
   description = "Cloudflare Turnstile site key for the staging RSVP widget."
   value       = module.site.turnstile_site_key

@@ -34,7 +34,6 @@ function buildSlackText(invite: InviteRecord, response: ValidatedSubmitPayload) 
     `Guest count: ${response.guestCount}`,
     'Guest responses:',
     formatAttendanceLine(invite, response),
-    `Dietary requirements: ${response.dietaryRequirements || 'None'}`,
     `Song request: ${response.songRequest || 'None'}`,
     `Message: ${response.message || 'None'}`,
   ];

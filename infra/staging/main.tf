@@ -15,6 +15,12 @@ module "site" {
   compatibility_date    = var.compatibility_date
 }
 
+resource "cloudflare_r2_bucket" "backups" {
+  account_id = var.cloudflare_account_id
+  name       = var.backup_bucket_name
+  location   = var.backup_bucket_location
+}
+
 import {
   to = module.site.cloudflare_pages_project.site
   id = "81f602c2c7158220365dc26397c148c1/thesharpes-wedding-staging"

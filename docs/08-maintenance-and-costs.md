@@ -54,7 +54,16 @@ SELECT * FROM rsvps ORDER BY created_at DESC;
 
 ## Backing Up RSVP Data
 
-Periodically export the D1 table to CSV or SQL before the RSVP deadline.
+The repo now supports scheduled JSON snapshots of each D1 database into R2:
+
+- Production: daily snapshots, 90-day retention
+- Staging: weekly snapshots, 30-day retention
+
+Each snapshot stores the schema and rows for every application table in the database, which keeps the backup files small and easy to inspect.
+
+At the current RSVP data size, these backups should remain well within Cloudflare's free R2 tier. Expected ongoing cost is likely still $0/month unless the dataset grows dramatically or the account is already incurring Workers/R2 charges elsewhere.
+
+If the backup Workers are not deployed yet, periodically export the D1 tables to CSV or SQL before the RSVP deadline.
 
 Suggested backup moments:
 

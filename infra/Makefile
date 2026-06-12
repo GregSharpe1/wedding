@@ -17,7 +17,7 @@ export TF_VAR_cloudflare_account_id = $(CLOUDFLARE_ACCOUNT_ID)
 export TF_VAR_cloudflare_zone_id = $(CLOUDFLARE_ZONE_ID)
 export TF_VAR_rsvp_invite_code = $(RSVP_INVITE_CODE)
 
-.PHONY: check-env init-staging init-production fmt validate-staging validate-production plan-staging plan-production apply-staging apply-production deploy deploy-staging deploy-production migrate-staging migrate-production update-guests-staging update-guests-production reset-guests-staging reset-guests-production clean
+.PHONY: check-env init-staging init-production fmt validate-staging validate-production plan-staging plan-production apply-staging apply-production deploy deploy-staging deploy-production deploy-backups-staging deploy-backups-production migrate-staging migrate-production update-guests-staging update-guests-production reset-guests-staging reset-guests-production rsvp-kpi-staging rsvp-kpi-production clean
 
 check-env:
 	@[[ -n "$(CLOUDFLARE_API_TOKEN)" ]] || { print -u2 "CLOUDFLARE_API_TOKEN is required"; exit 1; }
@@ -83,6 +83,16 @@ deploy-production:
 	@PUBLIC_TURNSTILE_SITE_KEY="$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw turnstile_site_key)" npm --prefix "$(ROOT_DIR)" run build
 	@(cd "$(ROOT_DIR)" && node scripts/run-with-wrangler-config.mjs --config "wrangler.production.toml" -- npx wrangler pages deploy "dist" --project-name="$(PRODUCTION_PROJECT_NAME)" --commit-dirty=true)
 
+deploy-backups-staging:
+	@[[ -n "$(CLOUDFLARE_API_TOKEN)" ]] || { print -u2 "CLOUDFLARE_API_TOKEN is required"; exit 1; }
+	@[[ -n "$(CLOUDFLARE_ACCOUNT_ID)" ]] || { print -u2 "CLOUDFLARE_ACCOUNT_ID is required"; exit 1; }
+	@(cd "$(ROOT_DIR)" && npx wrangler deploy --config "backups/wrangler.staging.toml")
+
+deploy-backups-production:
+	@[[ -n "$(CLOUDFLARE_API_TOKEN)" ]] || { print -u2 "CLOUDFLARE_API_TOKEN is required"; exit 1; }
+	@[[ -n "$(CLOUDFLARE_ACCOUNT_ID)" ]] || { print -u2 "CLOUDFLARE_ACCOUNT_ID is required"; exit 1; }
+	@(cd "$(ROOT_DIR)" && npx wrangler deploy --config "backups/wrangler.production.toml")
+
 migrate-staging:
 	@npx wrangler d1 migrations apply "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --config "$(STAGING_WRANGLER_CONFIG)" --remote
 
@@ -100,6 +110,12 @@ reset-guests-staging:
 
 reset-guests-production:
 	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_PROD)" --database "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --config "$(PRODUCTION_WRANGLER_CONFIG)" --remote --clear-existing
+
+rsvp-kpi-staging:
+	@node "$(ROOT_DIR)/scripts/rsvp-kpi.mjs" --database "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --config "$(STAGING_WRANGLER_CONFIG)" --environment staging
+
+rsvp-kpi-production:
+	@node "$(ROOT_DIR)/scripts/rsvp-kpi.mjs" --database "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --config "$(PRODUCTION_WRANGLER_CONFIG)" --environment production
 
 clean:
 	rm -rf "$(STAGING_DIR)/.terraform" "$(PRODUCTION_DIR)/.terraform" .wrangler

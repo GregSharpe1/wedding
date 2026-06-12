@@ -32,6 +32,18 @@ variable "d1_database_name" {
   default     = "thesharpes-wedding-staging-rsvps"
 }
 
+variable "backup_bucket_name" {
+  description = "R2 bucket name used for staging RSVP database backups."
+  type        = string
+  default     = "thesharpes-wedding-staging-backups"
+}
+
+variable "backup_bucket_location" {
+  description = "R2 location hint used for staging RSVP database backups."
+  type        = string
+  default     = "WEUR"
+}
+
 variable "rsvp_invite_code" {
   description = "Shared RSVP invite code used to open the gated RSVP flow."
   type        = string

@@ -1,0 +1,19 @@
+name = "thesharpes-wedding-staging-backups"
+main = "src/index.ts"
+compatibility_date = "2026-06-07"
+
+[vars]
+BACKUP_ENVIRONMENT = "staging"
+BACKUP_RETENTION_DAYS = "30"
+
+[triggers]
+crons = ["0 4 * * 1"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "thesharpes-wedding-staging-rsvps"
+database_id = "56d9d51b-5588-4f65-80ec-d04768b00d64"
+
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "thesharpes-wedding-staging-backups"

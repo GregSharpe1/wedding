@@ -10,6 +10,8 @@ Terraform for Cloudflare lives in this directory. Staging and production are sep
   - production Pages project, apex + `www` domains, production D1 database, production Turnstile widget
 - `infra/modules/pages_rsvp_site`
   - shared module used by both roots
+- `backups/`
+  - scheduled Workers that snapshot each D1 database into its matching R2 backup bucket
 
 ## Required environment variables
 
@@ -104,6 +106,10 @@ make update-guests-staging
 make update-guests-production
 make deploy-staging
 make deploy-production
+make deploy-backups-staging
+make deploy-backups-production
+make rsvp-kpi-staging
+make rsvp-kpi-production
 ```
 
 `make migrate-staging` and `make migrate-production` apply the SQL files under `../migrations/` to the D1 database from the matching Terraform root output.
@@ -119,6 +125,12 @@ The Makefile passes the matching config file for staging and production D1 comma
 `make update-guests-staging` and `make update-guests-production` import new invites from `../invites.json` without removing existing guests or RSVP statuses. Override the file with `INVITES_FILE=/path/to/file.json` if needed.
 
 `make reset-guests-staging` and `make reset-guests-production` fully replace the invite list and should only be used when you intentionally want to wipe RSVP data.
+
+`make deploy-backups-staging` deploys a weekly backup Worker for the staging D1 database. It runs every Monday at 04:00 UTC, snapshots every table into the staging R2 backup bucket, and keeps 30 days of backups.
+
+`make deploy-backups-production` deploys a daily backup Worker for the production D1 database. It runs daily at 03:00 UTC, snapshots every table into the production R2 backup bucket, and keeps 90 days of backups.
+
+`make rsvp-kpi-staging` and `make rsvp-kpi-production` print a concise RSVP performance summary with response rate, attendance rate, 7-day RSVP velocity, and pending households.
 
 ## Notes
 

@@ -1,0 +1,19 @@
+name = "thesharpes-wedding-production-backups"
+main = "src/index.ts"
+compatibility_date = "2026-06-07"
+
+[vars]
+BACKUP_ENVIRONMENT = "production"
+BACKUP_RETENTION_DAYS = "90"
+
+[triggers]
+crons = ["0 3 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "thesharpes-wedding-rsvps"
+database_id = "4415bcfe-6a03-4c1f-8a78-431987159544"
+
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "thesharpes-wedding-production-backups"
