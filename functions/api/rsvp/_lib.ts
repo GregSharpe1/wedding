@@ -183,7 +183,17 @@ async function loadInviteRows(env: Env, whereClause: string, binding: string) {
 }
 
 export async function findPendingInvitesBySurname(env: Env, surname: string) {
-  return loadInviteRows(env, 'LOWER(invites.surname) = ?1 AND invites.status = \'pending\'', surname);
+  return loadInviteRows(
+    env,
+    `invites.status = 'pending'
+      AND EXISTS (
+        SELECT 1
+        FROM invite_people lookup_people
+        WHERE lookup_people.invite_id = invites.id
+          AND LOWER(lookup_people.surname) = ?1
+      )`,
+    surname
+  );
 }
 
 export async function findInviteByToken(env: Env, token: string) {

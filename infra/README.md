@@ -108,6 +108,14 @@ make deploy-production
 
 `make migrate-staging` and `make migrate-production` apply the SQL files under `../migrations/` to the D1 database from the matching Terraform root output.
 
+Wrangler uses separate config files in the repo root:
+
+- `../wrangler.toml` for the staging Pages project default deploy config
+- `../wrangler.staging.toml`
+- `../wrangler.production.toml`
+
+The Makefile passes the matching config file for staging and production D1 commands. For Pages deploys, staging uses `../wrangler.toml` directly and production temporarily swaps in `../wrangler.production.toml` during the deploy command so each environment always uses the correct bindings.
+
 `make update-guests-staging` and `make update-guests-production` import new invites from `../invites.json` without removing existing guests or RSVP statuses. Override the file with `INVITES_FILE=/path/to/file.json` if needed.
 
 `make reset-guests-staging` and `make reset-guests-production` fully replace the invite list and should only be used when you intentionally want to wipe RSVP data.

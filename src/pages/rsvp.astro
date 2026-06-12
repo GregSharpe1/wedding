@@ -40,7 +40,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
           <label>
             <span class="rsvp-field-heading rsvp-step-heading">Surname</span>
             <input autocomplete="family-name" id="surname" name="surname" type="text" />
-            <span class="rsvp-field-helper">Use the surname printed on your invitation.</span>
+            <span class="rsvp-field-helper">Use any surname shown on your invitation.</span>
           </label>
           <div class="rsvp-turnstile-wrap">
             {
@@ -377,7 +377,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
         }
 
         showPanel(surnameForm);
-        setFeedback('Enter the surname from your invitation to continue.', 'info');
+        setFeedback('Enter a surname from your invitation to continue.', 'info');
         surnameInput.focus();
       } finally {
         setPending(gateForm, false);
@@ -389,7 +389,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       surname = surnameInput.value.trim();
 
       if (!surname) {
-        setFeedback('Please enter your surname.', 'error');
+        setFeedback('Please enter a surname from your invitation.', 'error');
         return;
       }
 

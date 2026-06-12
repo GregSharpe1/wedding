@@ -4,7 +4,7 @@
     "inviteType": "day",
     "people": [
       { "firstName": "Greg", "surname": "Sharpe" },
-      { "firstName": "Lucy", "surname": "Sharpe" }
+      { "firstName": "Lucy", "surname": "Young" }
     ]
   },
   {
@@ -69,7 +69,7 @@
     "inviteType": "evening",
     "people": [
       { "firstName": "Daniel", "surname": "Lewis" },
-      { "firstName": "Sophie", "surname": "Lewis" }
+      { "firstName": "Sophie", "surname": "Morgan" }
     ]
   },
   {

@@ -1,0 +1,8 @@
+name = "wedding-production"
+compatibility_date = "2026-06-07"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "thesharpes-wedding-rsvps"
+database_id = "4415bcfe-6a03-4c1f-8a78-431987159544"

@@ -41,7 +41,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const surname = normalizeName(body.surname);
 
   if (!surname) {
-    return json({ ok: false, error: 'Please enter your surname.' }, { status: 400 });
+    return json({ ok: false, error: 'Please enter a surname from your invitation.' }, { status: 400 });
   }
 
   const matches = await findPendingInvitesBySurname(env, surname);

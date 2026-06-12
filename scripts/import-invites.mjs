@@ -8,6 +8,8 @@ function parseArgs(argv) {
   const options = {
     input: '',
     database: '',
+    env: '',
+    config: '',
     clearExisting: false,
     dryRun: false,
     remote: false,
@@ -21,6 +23,12 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === '--database') {
       options.database = argv[index + 1] ?? '';
+      index += 1;
+    } else if (arg === '--env') {
+      options.env = argv[index + 1] ?? '';
+      index += 1;
+    } else if (arg === '--config') {
+      options.config = argv[index + 1] ?? '';
       index += 1;
     } else if (arg === '--clear-existing') {
       options.clearExisting = true;
@@ -73,8 +81,7 @@ function buildInviteExistsClause(invite) {
   return `EXISTS (
     SELECT 1
     FROM invites existing_invites
-    WHERE existing_invites.surname = '${escapeSql(invite.surname)}'
-      AND existing_invites.invite_type = '${invite.inviteType}'
+    WHERE existing_invites.invite_type = '${invite.inviteType}'
       AND ${invite.label ? `existing_invites.label = ${labelValue}` : 'existing_invites.label IS NULL'}
       AND (
         SELECT COUNT(*)
@@ -120,12 +127,6 @@ function validateInvite(invite, inviteIndex) {
   });
 
   const surname = normalizedPeople[0].surname;
-
-  for (const person of normalizedPeople) {
-    if (person.surname.toLowerCase() !== surname.toLowerCase()) {
-      throw new Error(`Invite ${inviteIndex + 1} must use one shared surname for lookup.`);
-    }
-  }
 
   return {
     label: typeof invite.label === 'string' ? invite.label.trim() : '',
@@ -206,6 +207,14 @@ async function main() {
   try {
     await writeFile(tempFile, sql, 'utf8');
     const args = ['wrangler', 'd1', 'execute', options.database, '--file', tempFile];
+
+    if (options.config) {
+      args.push('--config', options.config);
+    }
+
+    if (options.env) {
+      args.push('--env', options.env);
+    }
 
     if (options.remote) {
       args.push('--remote');

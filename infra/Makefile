@@ -8,6 +8,8 @@ STAGING_DIR := staging
 PRODUCTION_DIR := production
 INVITES_FILE_STAGING ?= $(abspath $(ROOT_DIR)/invites/staging.json)
 INVITES_FILE_PROD ?= $(abspath $(ROOT_DIR)/invites/prod.json)
+STAGING_WRANGLER_CONFIG := $(ROOT_DIR)/wrangler.staging.toml
+PRODUCTION_WRANGLER_CONFIG := $(ROOT_DIR)/wrangler.production.toml
 STAGING_SLACK_WEBHOOK_URL ?= $(SLACK_WEBHOOK_URL)
 PRODUCTION_SLACK_WEBHOOK_URL ?= $(SLACK_WEBHOOK_URL)
 
@@ -79,25 +81,25 @@ deploy-production:
 	@[[ -n "$(CLOUDFLARE_API_TOKEN)" ]] || { print -u2 "CLOUDFLARE_API_TOKEN is required"; exit 1; }
 	@[[ -n "$(CLOUDFLARE_ACCOUNT_ID)" ]] || { print -u2 "CLOUDFLARE_ACCOUNT_ID is required"; exit 1; }
 	@PUBLIC_TURNSTILE_SITE_KEY="$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw turnstile_site_key)" npm --prefix "$(ROOT_DIR)" run build
-	@(cd "$(ROOT_DIR)" && npx wrangler pages deploy "dist" --project-name="$(PRODUCTION_PROJECT_NAME)" --commit-dirty=true)
+	@(cd "$(ROOT_DIR)" && node scripts/run-with-wrangler-config.mjs --config "wrangler.production.toml" -- npx wrangler pages deploy "dist" --project-name="$(PRODUCTION_PROJECT_NAME)" --commit-dirty=true)
 
 migrate-staging:
-	@npx wrangler d1 migrations apply "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --remote
+	@npx wrangler d1 migrations apply "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --config "$(STAGING_WRANGLER_CONFIG)" --remote
 
 migrate-production:
-	@npx wrangler d1 migrations apply "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --remote
+	@npx wrangler d1 migrations apply "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --config "$(PRODUCTION_WRANGLER_CONFIG)" --remote
 
 update-guests-staging:
-	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_STAGING)" --database "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --remote
+	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_STAGING)" --database "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --config "$(STAGING_WRANGLER_CONFIG)" --remote
 
 update-guests-production:
-	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_PROD)" --database "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --remote
+	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_PROD)" --database "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --config "$(PRODUCTION_WRANGLER_CONFIG)" --remote
 
 reset-guests-staging:
-	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_STAGING)" --database "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --remote --clear-existing
+	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_STAGING)" --database "$$(terraform -chdir="$(STAGING_DIR)" output -raw d1_database_name)" --config "$(STAGING_WRANGLER_CONFIG)" --remote --clear-existing
 
 reset-guests-production:
-	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_PROD)" --database "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --remote --clear-existing
+	@npm --prefix "$(ROOT_DIR)" run import:invites -- --input "$(INVITES_FILE_PROD)" --database "$$(terraform -chdir="$(PRODUCTION_DIR)" output -raw d1_database_name)" --config "$(PRODUCTION_WRANGLER_CONFIG)" --remote --clear-existing
 
 clean:
 	rm -rf "$(STAGING_DIR)/.terraform" "$(PRODUCTION_DIR)/.terraform" .wrangler
